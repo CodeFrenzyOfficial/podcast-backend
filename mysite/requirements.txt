@@ -1,0 +1,6 @@
+djangorestframework
+dj-rest-auth 
+django-allauth 
+firebase-admin 
+django-cors-headers
+django-rest-framework
