@@ -1,6 +1,6 @@
 from pathlib import Path
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, storage, firestore
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'corsheaders',
+    'mysite',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,10 @@ DATABASES = {
     }
 }
 
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -71,7 +76,7 @@ STATIC_URL = 'static/'
 
 # Firebase Admin SDK initialization
 cred = credentials.Certificate('mysite/firebase-key.json')
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {"storageBucket": "gowinout.firebasestorage.app"})
 
 # Rest Framework configuration
 REST_FRAMEWORK = {

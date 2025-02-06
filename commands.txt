@@ -1,0 +1,10 @@
+python manage.py migrate
+python manage.py runserver
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+rm db.sqlite3
+
+
+muhammadwaqas
+admin1234
