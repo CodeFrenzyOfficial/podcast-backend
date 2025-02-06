@@ -80,9 +80,11 @@ firebase_admin.initialize_app(cred, {"storageBucket": "gowinout.firebasestorage.
 
 # Rest Framework configuration
 REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'dj_rest_auth',  # Correct the import
-        'mysite.authentication.FirebaseAuthentication',  # Custom Firebase Auth
+        'mysite.middlewares.authentication.FirebaseAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
 }

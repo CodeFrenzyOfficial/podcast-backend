@@ -19,15 +19,18 @@ from django.urls import path
 
 from mysite.views.podcasts.views import PodcastView
 from mysite.views.blogs.views import BlogView
-from mysite.views.auth.views import RegisterView, LoginView
+from mysite.views.auth.views import RegisterView, LoginView, LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', LoginView.as_view(), name='login'),
-    path('auth/logout/', LoginView.as_view(), name='logout'),
+    path('auth/logout/', LogoutView.as_view(), name='logout'),
 
-    path('blog/<str:user_id>//<str:blog_id>/', BlogView.as_view(), name='blog'),
+    path('blog/<str:user_id>/', BlogView.as_view(), name='blog'),
+    path('blog/<str:user_id>/<str:blog_id>/', BlogView.as_view(), name='blog'),
+    
+    path('podcast/<str:user_id>/', PodcastView.as_view(), name='podcast'),
     path('podcast/<str:user_id>/<str:podcast_id>/', PodcastView.as_view(), name='podcast'),
 ]
