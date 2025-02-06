@@ -18,11 +18,10 @@ class FirebaseAuthentication(BaseAuthentication):
             raise AuthenticationFailed('Invalid Firebase ID token')
 
         uid = decoded_token.get('uid')
-        email = decoded_token.get('email')
-
-        if not uid or not email:
+        
+        if not uid:
             raise AuthenticationFailed('Invalid token payload')
 
         # Get or create a Django user based on Firebase UID
-        user, _ = User.objects.get_or_create(username=uid, email=email)
+        user, _ = User.objects.get_or_create(username=uid)
         return (user, None)

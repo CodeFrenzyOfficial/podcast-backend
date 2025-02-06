@@ -1,9 +1,11 @@
+from datetime import datetime
 import firebase_admin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from firebase_admin import auth, firestore
 from rest_framework.permissions import AllowAny
+from rest_framework import serializers
 
 db = firestore.client()
 
@@ -28,6 +30,8 @@ class RegisterView(APIView):
                 password=password,
                 phone_number=phone
             )
+            
+            token =  auth.create_custom_token(user.uid).decode()
 
             # Save additional user details in Firestore
             user_data = {
@@ -37,13 +41,13 @@ class RegisterView(APIView):
                 "email": email,
                 "phone": phone,
                 "role": role,
-                "created_at": firestore.SERVER_TIMESTAMP,
-                "updated_at": firestore.SERVER_TIMESTAMP
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
             }
 
             db.collection("users").document(user.uid).set(user_data)
 
-            return Response({"message": "User registered successfully!", "uid": user.uid}, status=status.HTTP_201_CREATED)
+            return Response({"message": "User registered successfully!", "user": user_data, "token": token}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({"error": f"Firebase registration failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -61,12 +65,20 @@ class LoginView(APIView):
         try:
             # Try signing in user with Firebase
             user = auth.get_user_by_email(email)
+            user_ref = db.collection("users").document(format(user.uid))
+            user_doc = user_ref.get()
 
-            # Firebase doesn't provide password authentication directly through admin SDK
-            # Instead, handle authentication on the frontend using Firebase Auth (Next.js, React, etc.)
+            if not user_doc.exists:
+                return Response({"detail": "User not found in Firestore."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Get the user data from Firestore
+            user_data = user_doc.to_dict()
+            token = auth.create_custom_token(format(user.uid)).decode()
+            
             return Response({
-                "message": f"Welcome, {user.email}!",
-                "user": user,
+                "message": f"Welcome!",
+                "user": user_data,
+                "token": token,
             }, status=status.HTTP_200_OK)
 
         except firebase_admin.auth.UserNotFoundError:
@@ -77,12 +89,12 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def post(self, request):
         user_id = request.data.get("user_id")
-
+        
         if not user_id:
             return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            auth.revoke_refresh_tokens(user_id)  # Revoke the refresh token
+            auth.revoke_refresh_tokens(user_id) # Revoke the refresh token
             return Response({"message": "User logged out successfully!"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
