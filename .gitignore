@@ -1,2 +1,8 @@
 /venv
-mysite/mysite/__pycache__
+
+# Ignore all __pycache__ directories
+**/__pycache__/
+
+# (Optional) Ignore compiled Python files
+*.pyc
+*.pyo
