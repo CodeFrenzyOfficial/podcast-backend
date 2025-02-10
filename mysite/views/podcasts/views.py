@@ -15,11 +15,25 @@ class PodcastView(APIView):
             if not podcast.exists:
                 return Response({"error": "podcast not found!"}, status=status.HTTP_404_NOT_FOUND)
             return Response(podcast.to_dict(), status=status.HTTP_200_OK)
-        else:
+        
+        elif user_id:
             # Fetch all podcasts
             podcasts_ref = db.collection("users").document(user_id).collection("podcasts").stream()
             podcasts = [podcast.to_dict() for podcast in podcasts_ref]
             return Response(podcasts, status=status.HTTP_200_OK)
+        
+        else:
+            # Fetch all blogs across all users
+            users_ref = db.collection("users").stream()
+            all_podcasts = []
+
+            for user in users_ref:
+                user_id = user.id  # Get user document ID
+                podcasts_ref = db.collection("users").document(user_id).collection("podcasts").stream()
+                user_podcasts = [{"user_id": user_id, **podcast.to_dict()} for podcast in podcasts_ref]  # Add user_id for reference
+                all_podcasts.extend(user_podcasts)
+
+            return Response(all_podcasts, status=status.HTTP_200_OK)
 
     def post(self, request, user_id, podcast_id=None):
         title = request.data.get("title")
