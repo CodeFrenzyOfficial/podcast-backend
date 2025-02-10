@@ -14,32 +14,50 @@ class BlogView(APIView):
     def get(self, request, user_id=None, blog_id=None):
         if user_id and blog_id:
             # Fetch single blog by blog_id
-            blog_ref = db.collection(f"users/{user_id}/blogs").document(blog_id)  
+            blog_ref = db.collection("users").document(user_id).collection("blogs").document(blog_id)  
             blog = blog_ref.get()
             if not blog.exists:
                 return Response({"error": "Blog not found!"}, status=status.HTTP_404_NOT_FOUND)
             return Response(blog.to_dict(), status=status.HTTP_200_OK)
-        else:
-            # Fetch all blogs
-            blogs_ref = db.collection(f"users/{user_id}/blogs").stream()
+        
+        elif user_id:
+            # Fetch all single user blogs
+            blogs_ref = db.collection("users").document(user_id).collection("blogs").stream()
             blogs = [blog.to_dict() for blog in blogs_ref]
             return Response(blogs, status=status.HTTP_200_OK)
+        
+        else:
+            # Fetch all blogs across all users
+            users_ref = db.collection("users").stream()
+            all_blogs = []
+
+            for user in users_ref:
+                user_id = user.id  # Get user document ID
+                blogs_ref = db.collection("users").document(user_id).collection("blogs").stream()
+                user_blogs = [{"user_id": user_id, **blog.to_dict()} for blog in blogs_ref]  # Add user_id for reference
+                all_blogs.extend(user_blogs)
+
+            return Response(all_blogs, status=status.HTTP_200_OK)
 
     def post(self, request, user_id=None, blog_id=None):
         title = request.data.get("title")
         content = request.data.get("desc")
-        image = request.FILES.get("image")
+        images = request.FILES.getlist("image")
+        
+        return images
         
         if not user_id or not title or not content:
             return Response({"error": "User id, Title and content are required"}, status=400)
 
         # Create a new Firestore document under user's collection
-        doc_ref = db.collection(f"users/{user_id}/blogs").document()  
+        doc_ref = db.collection("users").document(user_id).collection("blogs").document()  
         blog_id = doc_ref.id 
 
-        image_url = None
-        if image:
-            image_url = upload_file_to_firebase(f"blogs/{user_id}/{blog_id}/thumbnail.jpg", image)  # Upload image
+        image_urls = []
+        if images:
+            for index, image in enumerate(images):
+                image_url = upload_file_to_firebase(f"blogs/{user_id}/{blog_id}/thumbnail_{index}.jpg", image)
+                image_urls.append(image_url)  # Upload image
             
         # Get the current timestamp
         now = datetime.utcnow()
@@ -48,7 +66,7 @@ class BlogView(APIView):
             "id": blog_id,
             "title": title,
             "desc": content,
-            "imgSrc": image_url,
+            "imgSrc": image_urls,
             "upload_date": now,  # Add the creation timestamp
             "updated_at": now,
         }
@@ -61,7 +79,7 @@ class BlogView(APIView):
             if not user_id:
                 return Response({"error": "User id is required"}, status=400)
         
-            blog_ref = db.collection(f"users/{user_id}/blogs").document(blog_id)  
+            blog_ref = db.collection("users").document(user_id).collection("blogs").document(blog_id)  
             
             if(request.FILES.get("image")):
                 image = request.FILES.get("image")
@@ -85,7 +103,7 @@ class BlogView(APIView):
 
     def delete(self, request,user_id, blog_id):
         if request.method == 'DELETE':
-            blog_ref = db.collection(f"users/{user_id}/blogs").document(blog_id)  
+            blog_ref = db.collection("users").document(user_id).collection("blogs").document(blog_id)  
 
             # Check if blog exists
             blog = blog_ref.get()

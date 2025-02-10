@@ -17,7 +17,7 @@ class UsersView(APIView):
             return Response(user.to_dict(), status=status.HTTP_200_OK)
         else:
             # Fetch all podcasts
-            poodcasts_ref = db.collection('users').stream()
+            poodcasts_ref = db.collection('users').where("role", "!=", "admin").stream()
             podcasts = [user.to_dict() for user in poodcasts_ref]
             return Response(podcasts, status=status.HTTP_200_OK)
 
@@ -36,6 +36,8 @@ class UsersView(APIView):
                 'f_name': data.get('f_name', user.to_dict()['f_name']),
                 'l_name': data.get('l_name', user.to_dict()['l_name']),
                 'phone': data.get('phone', user.to_dict()['phone']),
+                'blogs': data.get('blogs', user.to_dict()['blogs']),
+                'podcasts': data.get('podcasts', user.to_dict()['podcasts']),
                 'updated_at': datetime.utcnow()
             })
             
