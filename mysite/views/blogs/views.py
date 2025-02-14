@@ -44,7 +44,7 @@ class BlogView(APIView):
         content = request.data.get("desc")
         images = request.FILES.getlist("image")
         
-        return images
+        print(images)
         
         if not user_id or not title or not content:
             return Response({"error": "User id, Title and content are required"}, status=400)
@@ -55,8 +55,8 @@ class BlogView(APIView):
 
         image_urls = []
         if images:
-            for index, image in enumerate(images):
-                image_url = upload_file_to_firebase(f"blogs/{user_id}/{blog_id}/thumbnail_{index}.jpg", image)
+            for image in images:
+                image_url = upload_file_to_firebase(f"blogs/{user_id}/{blog_id}/{image}", image)
                 image_urls.append(image_url)  # Upload image
             
         # Get the current timestamp
@@ -101,9 +101,9 @@ class BlogView(APIView):
             
             return Response({"message": "Blog updated successfully!"}, status=status.HTTP_200_OK)
 
-    def delete(self, request,user_id, blog_id):
+    def delete(self, request, user_id, blog_id):
         if request.method == 'DELETE':
-            blog_ref = db.collection("users").document(user_id).collection("blogs").document(blog_id)  
+            blog_ref = db.collection("users").document(user_id).collection("blogs").document(blog_id)
 
             # Check if blog exists
             blog = blog_ref.get()
