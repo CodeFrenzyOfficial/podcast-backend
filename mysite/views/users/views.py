@@ -32,13 +32,28 @@ class UsersView(APIView):
             
             # Update user data
             data = request.data
-            user_ref.update({
-                'f_name': data.get('f_name', user.to_dict()['f_name']),
-                'l_name': data.get('l_name', user.to_dict()['l_name']),
-                'phone': data.get('phone', user.to_dict()['phone']),
-                'blogs': data.get('blogs', user.to_dict()['blogs']),
-                'podcasts': data.get('podcasts', user.to_dict()['podcasts']),
-                'updated_at': datetime.utcnow()
-            })
+            update_data = {}
+
+            # Loop through allowed fields and only add the ones present in payload
+            allowed_fields = ['f_name', 'l_name', 'phone', 'blogs', 'podcasts']
+            for field in allowed_fields:
+                if field in data:  # ✅ Only add fields that are in the payload
+                    update_data[field] = data[field]
+
+            # Always update the timestamp
+            update_data['updated_at'] = datetime.utcnow()
+
+            # ✅ Perform update only with present fields
+            if update_data:
+                user_ref.update(update_data)
+                
+            # user_ref.update({
+            #     'f_name': data.get('f_name', user.to_dict()['f_name']),
+            #     'l_name': data.get('l_name', user.to_dict()['l_name']),
+            #     'phone': data.get('phone', user.to_dict()['phone']),
+            #     'blogs': data.get('blogs', user.to_dict()['blogs']),
+            #     'podcasts': data.get('podcasts', user.to_dict()['podcasts']),
+            #     'updated_at': datetime.utcnow()
+            # })
             
             return Response({"message": "user updated successfully!"}, status=status.HTTP_200_OK)
