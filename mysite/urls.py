@@ -20,6 +20,7 @@ from django.urls import path
 from mysite.views.podcasts.views import PodcastView
 from mysite.views.blogs.views import BlogView
 from mysite.views.users.views import UsersView
+from mysite.views.contacts.views import ContactsView
 from mysite.views.auth.views import RegisterView, LoginView, LogoutView
 
 urlpatterns = [
@@ -39,4 +40,6 @@ urlpatterns = [
     
     path('users/', UsersView.as_view(), name='users'),
     path('users/<str:user_id>/', UsersView.as_view(), name='users'),
+    
+    path('contacts/', ContactsView.as_view(), name='contacts'),
 ]
