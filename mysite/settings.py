@@ -11,7 +11,7 @@ SECRET_KEY = 'django-insecure-$p0^9a2amp8xu00qohs^0-(---p=l+kn1we)lr7))-$a6jzl&l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "api.gowinout.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "api.gowinout.com"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -113,3 +113,7 @@ TEMPLATES = [
         },
     },
 ]
+
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800 

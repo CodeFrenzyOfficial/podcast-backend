@@ -81,9 +81,13 @@ class BlogView(APIView):
         
             blog_ref = db.collection("users").document(user_id).collection("blogs").document(blog_id)  
             
+            image_urls = []
             if(request.FILES.get("image")):
-                image = request.FILES.get("image")
-                image_url = upload_file_to_firebase(f"blogs/{user_id}/{blog_id}/thumbnail.jpg", image)  # Upload image
+                images = request.FILES.getlist("image")
+                if images: 
+                    for image in images:
+                        image_url = upload_file_to_firebase(f"blogs/{user_id}/{blog_id}/{image}", image)
+                        image_urls.append(image_url)  # Upload image
             
             # Check if blog exists
             blog = blog_ref.get()
@@ -95,7 +99,7 @@ class BlogView(APIView):
             blog_ref.update({
                 'title': data.get('title', blog.to_dict()['title']),
                 'desc': data.get('desc', blog.to_dict()['desc']),
-                'imgSrc': image_url,
+                'imgSrc': image_urls,
                 'updated_at': datetime.utcnow()
             })
             
