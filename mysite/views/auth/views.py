@@ -98,3 +98,16 @@ class LogoutView(APIView):
             return Response({"message": "User logged out successfully!"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class CurrentUserView(APIView):
+    def get(self, request, user_id):
+        if not user_id:
+            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_ref = db.collection("users").document(user_id)
+            user_doc = user_ref.get()
+            
+            return Response({"user":user_doc.to_dict()} , status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
