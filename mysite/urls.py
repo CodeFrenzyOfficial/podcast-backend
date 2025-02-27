@@ -21,7 +21,7 @@ from mysite.views.podcasts.views import PodcastView
 from mysite.views.blogs.views import BlogView
 from mysite.views.users.views import UsersView
 from mysite.views.contacts.views import ContactsView
-from mysite.views.auth.views import RegisterView, LoginView, LogoutView
+from mysite.views.auth.views import RegisterView, LoginView, LogoutView, CurrentUserView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +29,7 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', LoginView.as_view(), name='login'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
+    path('auth/current/<str:user_id>/', CurrentUserView.as_view(), name='current'),
 
     path('blog/', BlogView.as_view(), name='blog'),
     path('blog/<str:user_id>/', BlogView.as_view(), name='blog'),
