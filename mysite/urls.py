@@ -37,6 +37,7 @@ urlpatterns = [
     
     path('podcast/', PodcastView.as_view(), name='podcast'),
     path('podcast/<str:user_id>/', PodcastView.as_view(), name='podcast'),
+    path('podcast/category/<str:category>/', PodcastView.as_view(), name='podcast'),
     path('podcast/<str:user_id>/<str:podcast_id>/', PodcastView.as_view(), name='podcast'),
     
     path('users/', UsersView.as_view(), name='users'),
