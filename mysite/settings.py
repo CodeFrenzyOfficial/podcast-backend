@@ -115,5 +115,9 @@ TEMPLATES = [
 ]
 
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024 * 1024  # 50GB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024 * 1024  # 50GB
+DATA_UPLOAD_MAX_MEMORY_SIZE = None  # No limit
+FILE_UPLOAD_MAX_MEMORY_SIZE = None  # No limit
+
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",  # Uses disk, not RAM
+]
