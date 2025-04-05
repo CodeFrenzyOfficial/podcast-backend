@@ -11,7 +11,7 @@ SECRET_KEY = 'django-insecure-$p0^9a2amp8xu00qohs^0-(---p=l+kn1we)lr7))-$a6jzl&l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "api.gowinout.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "api.gowinout.com","gowinout.com"]
 
 # Application definition
 INSTALLED_APPS = [
