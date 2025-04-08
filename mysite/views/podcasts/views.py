@@ -2,12 +2,11 @@ from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from mysite.services.upload import upload_file_to_firebase
 from firebase_admin import firestore
 from rest_framework.pagination import PageNumberPagination
 
 db = firestore.client()
-      
+
 class PodcastView(APIView):
 
     def get(self, request, user_id=None, podcast_id=None, category=None):
@@ -29,7 +28,6 @@ class PodcastView(APIView):
 
             for user in users_ref:
                 user_id = user.id
-
                 podcasts_ref = db.collection("users").document(user_id).collection("podcasts")
 
                 if category == 'dj':
@@ -64,90 +62,73 @@ class PodcastView(APIView):
             return Response(all_podcasts, status=status.HTTP_200_OK)
 
     def post(self, request, user_id, podcast_id=None):
-        title = request.data.get("title")
-        desc = request.data.get("desc")
-        category = request.data.get("category")
-        image = request.FILES.get("image") 
-        video = request.FILES.get("video")  
+        try:
+            data = request.data
+            title = data.get("title")
+            desc = data.get("desc")
+            category = data.get("category")
+            image_url = data.get("imgSrc")
+            video_url = data.get("videoSrc")
 
-        if not user_id or not title or not desc:
-            return Response({"error": "User id, Title and desc are required"}, status=status.HTTP_400_BAD_REQUEST)
+            if not user_id or not title or not desc or not image_url or not video_url:
+                return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
-        podcast_id = db.collection("users").document(user_id).collection("podcasts").document().id  
+            podcast_id = db.collection("users").document(user_id).collection("podcasts").document().id  
 
-        image_url = None
-        if image:
-            image_url = upload_file_to_firebase(f"podcasts/{user_id}/thumbnail/{podcast_id}/thumbnail.jpg", image)
+            podcast_data = {
+                "id": podcast_id,
+                "title": title,
+                "desc": desc,
+                "category": category,
+                "imgSrc": image_url,
+                "videoSrc": video_url,
+                "upload_date": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "file_size": data.get("file_size", 0),
+                "duration": data.get("duration", 0),
+                "status": "completed"
+            }
 
-        video_url = None
-        if video:
-            video_url = upload_file_to_firebase(f"podcasts/{user_id}/video/{podcast_id}/video.mp4", video)
+            db.collection("users").document(user_id).collection("podcasts").document(podcast_id).set(podcast_data)
 
-        podcast_data = {
-            "id": podcast_id,
-            "title": title,
-            "desc": desc,
-            "category": category,
-            "imgSrc": image_url,
-            "videoSrc": video_url,
-            "upload_date": datetime.utcnow(),
-            "updated_at": datetime.utcnow(),
-        }
-        
-        db.collection("users").document(user_id).collection("podcasts").document(podcast_id).set(podcast_data)
-        return Response({"message": "Podcast created successfully", "podcast": podcast_data}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Podcast created successfully", "podcast": podcast_data}, status=status.HTTP_201_CREATED)
 
+        except Exception as e:
+            return Response({"error": f"Failed to create podcast: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, user_id, podcast_id):
-        if request.method == 'PUT':
-            podcast_ref = db.collection("users").document(user_id).collection("podcasts").document(podcast_id)  
-            
-            image = request.FILES.get("image")  # Thumbnail
-            video = request.FILES.get("video")  # Video file
-            
-            # Check if podcast exists
+        try:
+            podcast_ref = db.collection("users").document(user_id).collection("podcasts").document(podcast_id)
             podcast = podcast_ref.get()
             if not podcast.exists:
                 return Response({"error": "podcast not found!"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Upload image (thumbnail)
-            image_url = None
-            if image:
-                image_url = upload_file_to_firebase(f"podcasts/{user_id}/thumbnail/{podcast_id}/thumbnail.jpg", image)
-                podcast_ref.update({
-                    'imgSrc': image_url,
-                })
-
-            # Upload video
-            video_url = None
-            if video:
-                video_url = upload_file_to_firebase(f"podcasts/{user_id}/video/{podcast_id}/video.mp4", video)
-                podcast_ref.update({
-                    'videoSrc': video_url,
-                })
-            
-            # Update podcast data
             data = request.data
-            podcast_ref.update({
-                'title': data.get('title', podcast.to_dict()['title']),
-                'desc': data.get('desc', podcast.to_dict()['desc']),
-                'category': data.get('desc', podcast.to_dict()['category']),
-                'updated_at': datetime.utcnow()
-            })
-            
-            return Response({"message": "podcast updated successfully!"}, status=status.HTTP_200_OK)
+            update_data = {
+                "updated_at": datetime.utcnow()
+            }
+
+            for key in ["title", "desc", "category", "imgSrc", "videoSrc", "duration", "file_size"]:
+                if data.get(key):
+                    update_data[key] = data[key]
+
+            podcast_ref.update(update_data)
+
+            return Response({"message": "Podcast updated successfully", "updated": update_data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": f"Failed to update podcast: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request, user_id, podcast_id):
-        if request.method == 'DELETE':
+        try:
             podcast_ref = db.collection("users").document(user_id).collection("podcasts").document(podcast_id)
-            
-            # Check if podcast exists
             podcast = podcast_ref.get()
             if not podcast.exists:
                 return Response({"error": "podcast not found!"}, status=status.HTTP_404_NOT_FOUND)
-            
-            # Delete podcast
+
             podcast_ref.delete()
-            
+
             return Response({"message": "podcast deleted successfully!"}, status=status.HTTP_200_OK)
-        
+
+        except Exception as e:
+            return Response({"error": f"Failed to delete podcast: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -32,6 +32,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -114,10 +115,13 @@ TEMPLATES = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://gowinout.com",
+]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = None  # No limit
 FILE_UPLOAD_MAX_MEMORY_SIZE = None  # No limit
 
 FILE_UPLOAD_HANDLERS = [
-    "django.core.files.uploadhandler.TemporaryFileUploadHandler",  # Uses disk, not RAM
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
 ]
