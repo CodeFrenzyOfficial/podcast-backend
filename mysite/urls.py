@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 
 from mysite.views.podcasts.views import PodcastView
+from mysite.views.BlogSlug.views import BlogSlugView
 from mysite.views.blogs.views import BlogView
 from mysite.views.users.views import UsersView
 from mysite.views.contacts.views import ContactsView
@@ -34,6 +35,9 @@ urlpatterns = [
     path('blog/', BlogView.as_view(), name='blog'),
     path('blog/<str:user_id>/', BlogView.as_view(), name='blog'),
     path('blog/<str:user_id>/<str:blog_id>/', BlogView.as_view(), name='blog'),
+
+    # Blog by Slug
+    path('blog/slug/<str:slug>/', BlogSlugView.as_view(), name='blog-slug'),
     
     path('podcast/', PodcastView.as_view(), name='podcast'),
     path('podcast/<str:user_id>/', PodcastView.as_view(), name='podcast'),
